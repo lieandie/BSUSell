@@ -5,9 +5,7 @@ import java.io.File;
  */
 public class Main {
     public static void main(String[] args) {
-
         Controller controller = new Controller();
-        controller.initModel();
-        controller.initView();
+        Login login = new Login(controller);
     }
 }

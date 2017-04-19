@@ -8,8 +8,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Vector;
 
 /**
  * Created by Кирилл on 12.04.2017.
@@ -85,8 +85,63 @@ public class AppForm extends JFrame {
         $$$setupUI$$$();
         this.controller = controller;
         setTitle("Продажа радиодеталей");
+        Image icon = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB_PRE);
+        this.setIconImage(icon);
+        JMenuBar menubar = new JMenuBar();
+        JMenu menu = new JMenu("Файл");
+        JMenu menu1 = new JMenu("Правка");
+        JMenu menu2 = new JMenu("Сервис");
+        JMenu menu3 = new JMenu("Словари");
+        JMenu menu4 = new JMenu("Помощь");
+        JMenu otchet = new JMenu("Отчеты");
+        otchet.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                Report report = new Report(controller);
+            }
+        });
+        JMenuItem itm = new JMenuItem("Сохранить");
+        menu.add(itm);
+        itm = new JMenuItem("Открыть");
+        menu.add(itm);
+        itm = new JMenuItem("Закрыть");
+        menu.add(itm);
+        menu.add(new JSeparator());
+        JMenu submenu = new JMenu("Дополнительно");
+        itm = new JMenuItem("Печать");
+        submenu.add(itm);
+        itm = new JMenuItem("Экспорт");
+        submenu.add(itm);
+        menu.add(submenu);
+        menubar.add(menu);
+        itm = new JMenuItem("Найти");
+        menu1.add(itm);
+        itm = new JMenuItem("Вставить");
+        menu1.add(itm);
+        itm = new JMenuItem("Изменить");
+        menu1.add(itm);
+        menubar.add(menu1);
+        itm = new JMenuItem("Настройки");
+        menu2.add(itm);
+        itm = new JMenuItem("Отображение");
+        menu2.add(itm);
+        itm = new JMenuItem("Нагрузка системы");
+        menu2.add(itm);
+        itm = new JMenuItem("Текущие сессии");
+        menu2.add(itm);
+        menubar.add(menu2);
+        itm = new JMenuItem("Редактирование словарей");
+        menu3.add(itm);
+        itm = new JMenuItem("Загрузка словарей");
+        menu3.add(itm);
+        itm = new JMenuItem("Обновление базы");
+        menu3.add(itm);
+        menubar.add(menu3);
+        menubar.add(menu4);
+        menubar.add(otchet);
+        this.setJMenuBar(menubar);
         initListeners();
-        setContentPane(menu);
+        setContentPane(wrapPanel);
         setVisible(true);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         pack();
@@ -163,17 +218,10 @@ public class AppForm extends JFrame {
         });
         addClientButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                AddClient addFrame = new AddClient(controller);
+                AddClient addFrame = new AddClient(controller, clientsTable);
             }
         });
-        clientsTable.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    System.out.println(clientsTable.getSelectedRow());
-                }
-            }
-        });
+
         refreshNomenclature.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 controller.updateNomenclatureTable(controller.getHibernate().get("Nomenclature"), nomenclatureTable);
@@ -181,33 +229,73 @@ public class AppForm extends JFrame {
         });
         addNomenclature.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                AddNomenclature addNomenclature = new AddNomenclature(controller);
+                AddNomenclature addNomenclature = new AddNomenclature(controller, nomenclatureTable);
             }
         });
         addShipper.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                AddShipper addShipper = new AddShipper(controller);
+                AddShipper addShipper = new AddShipper(controller, shippersTable);
             }
         });
         addItemsInStorage.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                AddItem addItem = new AddItem(controller);
+                AddItem addItem = new AddItem(controller, itemsInStorageTable);
             }
         });
         addStorage.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                AddStorage addStorage = new AddStorage(controller);
+                AddStorage addStorage = new AddStorage(controller, storageTable);
             }
         });
-        clientsTable.addMouseListener(new MouseAdapter() {
+        addDeals.addActionListener((e) -> {
+            AddSellOrder addSellOrder = new AddSellOrder(controller);
+        });
+        refreshDeals.addActionListener(new ActionListener() {
             @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    System.out.println(clientsTable.getSelectedRow());
-                }
+            public void actionPerformed(ActionEvent e) {
+                controller.updateSellOrdersTable(controller.getHibernate().get("SellOrder"), dealsTable);
             }
         });
-
+        deleteDeals.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Integer idx = (Integer) dealsTable.getModel().getValueAt(dealsTable.getSelectedRow(), 0);
+                ArrayList list = controller.getHibernate().get("SellOrderItem where sellOrdersId=" + idx);
+                for (Object o : list) {
+                    controller.getHibernate().delete(o);
+                }
+                SellOrder o = new SellOrder();
+                o.setId(idx);
+                controller.getHibernate().delete(o);
+                controller.updateSellOrdersTable(controller.getHibernate().get("SellOrder"), dealsTable);
+            }
+        });
+        refreshShipOrder.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                controller.updateShipOrderTable(controller.getHibernate().get("ShipOrder"), shipOrdersTable);
+            }
+        });
+        addShipOrder.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                AddShipOrder addShipOrder = new AddShipOrder(controller);
+            }
+        });
+        deleteShipOrder.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Integer idx = (Integer) shipOrdersTable.getModel().getValueAt(shipOrdersTable.getSelectedRow(), 0);
+                ArrayList list = controller.getHibernate().get("ShipOrderItem where shipOrdersId=" + idx);
+                for (Object o : list) {
+                    controller.getHibernate().delete(o);
+                }
+                ShipOrder o = new ShipOrder();
+                o.setId(idx);
+                controller.getHibernate().delete(o);
+                controller.updateSellOrdersTable(controller.getHibernate().get("ShipOrder"), shipOrdersTable);
+            }
+        });
         menu.addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 switch (menu.getSelectedIndex()) {
@@ -232,13 +320,63 @@ public class AppForm extends JFrame {
                         break;
                     }
                     case 5: {
-                         //controller.updateClientTable(controller.getHibernate().get("Client"));
+                        controller.updateShipOrderTable(controller.getHibernate().get("ShipOrder"), shipOrdersTable);
                         break;
                     }
                     case 6: {
-                         controller.updateSellOrdersTable(controller.getHibernate().get("SellOrder"), dealsTable);
+                        controller.updateSellOrdersTable(controller.getHibernate().get("SellOrder"), dealsTable);
                         break;
                     }
+                }
+            }
+        });
+        clientsTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int id = (Integer) clientsTable.getValueAt(clientsTable.getSelectedRow(), 0);
+                    ArrayList list = controller.getHibernate().get("Client where id=" + id);
+                    AddClient addClient = new AddClient(controller, (Client) list.get(0));
+                }
+            }
+        });
+        nomenclatureTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int id = (Integer) nomenclatureTable.getValueAt(nomenclatureTable.getSelectedRow(), 0);
+                    ArrayList list = controller.getHibernate().get("Nomenclature where id=" + id);
+                    AddNomenclature addNomenclature = new AddNomenclature(controller, (Nomenclature) list.get(0));
+                }
+            }
+        });
+        itemsInStorageTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int id = (Integer) itemsInStorageTable.getValueAt(itemsInStorageTable.getSelectedRow(), 0);
+                    ArrayList list = controller.getHibernate().get("Item where id=" + id);
+                    AddItem addItem = new AddItem(controller, (Item) list.get(0));
+                }
+            }
+        });
+        storageTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int id = (Integer) storageTable.getValueAt(storageTable.getSelectedRow(), 0);
+                    ArrayList list = controller.getHibernate().get("Storage where id=" + id);
+                    AddStorage addStorage = new AddStorage(controller, (Storage) list.get(0));
+                }
+            }
+        });
+        shippersTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    int id = (Integer) shippersTable.getValueAt(shippersTable.getSelectedRow(), 0);
+                    ArrayList list = controller.getHibernate().get("Shipper where id=" + id);
+                    AddShipper addShipper = new AddShipper(controller, (Shipper) list.get(0));
                 }
             }
         });
@@ -250,422 +388,6 @@ public class AppForm extends JFrame {
 
     public void setController(Controller controller) {
         this.controller = controller;
-    }
-
-    public JTabbedPane getMenu() {
-        return menu;
-    }
-
-    public void setMenu(JTabbedPane menu) {
-        this.menu = menu;
-    }
-
-    public JPanel getWrapPanel() {
-        return wrapPanel;
-    }
-
-    public void setWrapPanel(JPanel wrapPanel) {
-        this.wrapPanel = wrapPanel;
-    }
-
-    public JTable getClientsTable() {
-        return clientsTable;
-    }
-
-    public void setClientsTable(JTable clientsTable) {
-        this.clientsTable = clientsTable;
-    }
-
-    public JPanel getClientsTab() {
-        return clientsTab;
-    }
-
-    public void setClientsTab(JPanel clientsTab) {
-        this.clientsTab = clientsTab;
-    }
-
-    public JPanel getShipOrdersTab() {
-        return shipOrdersTab;
-    }
-
-    public void setShipOrdersTab(JPanel shipOrdersTab) {
-        this.shipOrdersTab = shipOrdersTab;
-    }
-
-    public JPanel getDealsTab() {
-        return dealsTab;
-    }
-
-    public void setDealsTab(JPanel dealsTab) {
-        this.dealsTab = dealsTab;
-    }
-
-    public JPanel getShippersTab() {
-        return shippersTab;
-    }
-
-    public void setShippersTab(JPanel shippersTab) {
-        this.shippersTab = shippersTab;
-    }
-
-    public JPanel getNomenclatureTab() {
-        return nomenclatureTab;
-    }
-
-    public void setNomenclatureTab(JPanel nomenclatureTab) {
-        this.nomenclatureTab = nomenclatureTab;
-    }
-
-    public JPanel getStorageTab() {
-        return storageTab;
-    }
-
-    public void setStorageTab(JPanel storageTab) {
-        this.storageTab = storageTab;
-    }
-
-    public JPanel getItemsInStorageTab() {
-        return itemsInStorageTab;
-    }
-
-    public void setItemsInStorageTab(JPanel itemsInStorageTab) {
-        this.itemsInStorageTab = itemsInStorageTab;
-    }
-
-    public JTable getShipOrdersTable() {
-        return shipOrdersTable;
-    }
-
-    public void setShipOrdersTable(JTable shipOrdersTable) {
-        this.shipOrdersTable = shipOrdersTable;
-    }
-
-    public JTable getShippersTable() {
-        return shippersTable;
-    }
-
-    public void setShippersTable(JTable shippersTable) {
-        this.shippersTable = shippersTable;
-    }
-
-    public JTable getNomenclatureTable() {
-        return nomenclatureTable;
-    }
-
-    public void setNomenclatureTable(JTable nomenclatureTable) {
-        this.nomenclatureTable = nomenclatureTable;
-    }
-
-    public JTable getStorageTable() {
-        return storageTable;
-    }
-
-    public void setStorageTable(JTable storageTable) {
-        this.storageTable = storageTable;
-    }
-
-    public JTable getItemsInStorageTable() {
-        return itemsInStorageTable;
-    }
-
-    public void setItemsInStorageTable(JTable itemsInStorageTable) {
-        this.itemsInStorageTable = itemsInStorageTable;
-    }
-
-    public JTable getDealsTable() {
-        return dealsTable;
-    }
-
-    public void setDealsTable(JTable dealsTable) {
-        this.dealsTable = dealsTable;
-    }
-
-    public JButton getAddClientBtn() {
-        return addClientBtn;
-    }
-
-    public void setAddClientBtn(JButton addClientBtn) {
-        this.addClientBtn = addClientBtn;
-    }
-
-    public JToolBar getClientsToolbar() {
-        return clientsToolbar;
-    }
-
-    public void setClientsToolbar(JToolBar clientsToolbar) {
-        this.clientsToolbar = clientsToolbar;
-    }
-
-    public JButton getAddClientButton() {
-        return addClientButton;
-    }
-
-    public void setAddClientButton(JButton addClientButton) {
-        this.addClientButton = addClientButton;
-    }
-
-    public JButton getDeleteClientButton() {
-        return deleteClientButton;
-    }
-
-    public void setDeleteClientButton(JButton deleteClientButton) {
-        this.deleteClientButton = deleteClientButton;
-    }
-
-    public JButton getRefreshClientTableButton() {
-        return refreshClientTableButton;
-    }
-
-    public void setRefreshClientTableButton(JButton refreshClientTableButton) {
-        this.refreshClientTableButton = refreshClientTableButton;
-    }
-
-    public JScrollPane getClientTableWrap() {
-        return clientTableWrap;
-    }
-
-    public void setClientTableWrap(JScrollPane clientTableWrap) {
-        this.clientTableWrap = clientTableWrap;
-    }
-
-    public JScrollPane getShipOrderTableWrap() {
-        return shipOrderTableWrap;
-    }
-
-    public void setShipOrderTableWrap(JScrollPane shipOrderTableWrap) {
-        this.shipOrderTableWrap = shipOrderTableWrap;
-    }
-
-    public JScrollPane getShippersTableWrap() {
-        return shippersTableWrap;
-    }
-
-    public void setShippersTableWrap(JScrollPane shippersTableWrap) {
-        this.shippersTableWrap = shippersTableWrap;
-    }
-
-    public JScrollPane getNomenclatureTableWrap() {
-        return nomenclatureTableWrap;
-    }
-
-    public void setNomenclatureTableWrap(JScrollPane nomenclatureTableWrap) {
-        this.nomenclatureTableWrap = nomenclatureTableWrap;
-    }
-
-    public JScrollPane getStorageTableWrap() {
-        return storageTableWrap;
-    }
-
-    public void setStorageTableWrap(JScrollPane storageTableWrap) {
-        this.storageTableWrap = storageTableWrap;
-    }
-
-    public JScrollPane getItemsInStorageTableWrap() {
-        return itemsInStorageTableWrap;
-    }
-
-    public void setItemsInStorageTableWrap(JScrollPane itemsInStorageTableWrap) {
-        this.itemsInStorageTableWrap = itemsInStorageTableWrap;
-    }
-
-    public JScrollPane getDealsTableWrap() {
-        return dealsTableWrap;
-    }
-
-    public void setDealsTableWrap(JScrollPane dealsTableWrap) {
-        this.dealsTableWrap = dealsTableWrap;
-    }
-
-    public JToolBar getShipOrdersToolbar() {
-        return shipOrdersToolbar;
-    }
-
-    public void setShipOrdersToolbar(JToolBar shipOrdersToolbar) {
-        this.shipOrdersToolbar = shipOrdersToolbar;
-    }
-
-    public JToolBar getShippersToolbar() {
-        return shippersToolbar;
-    }
-
-    public void setShippersToolbar(JToolBar shippersToolbar) {
-        this.shippersToolbar = shippersToolbar;
-    }
-
-    public JToolBar getNomenclatureToolbar() {
-        return nomenclatureToolbar;
-    }
-
-    public void setNomenclatureToolbar(JToolBar nomenclatureToolbar) {
-        this.nomenclatureToolbar = nomenclatureToolbar;
-    }
-
-    public JToolBar getStorageToolbar() {
-        return storageToolbar;
-    }
-
-    public void setStorageToolbar(JToolBar storageToolbar) {
-        this.storageToolbar = storageToolbar;
-    }
-
-    public JToolBar getItemsInStorageToolbar() {
-        return itemsInStorageToolbar;
-    }
-
-    public void setItemsInStorageToolbar(JToolBar itemsInStorageToolbar) {
-        this.itemsInStorageToolbar = itemsInStorageToolbar;
-    }
-
-    public JToolBar getDealsToolbar() {
-        return dealsToolbar;
-    }
-
-    public void setDealsToolbar(JToolBar dealsToolbar) {
-        this.dealsToolbar = dealsToolbar;
-    }
-
-    public JButton getAddShipOrder() {
-        return addShipOrder;
-    }
-
-    public void setAddShipOrder(JButton addShipOrder) {
-        this.addShipOrder = addShipOrder;
-    }
-
-    public JButton getDeleteShipOrder() {
-        return deleteShipOrder;
-    }
-
-    public void setDeleteShipOrder(JButton deleteShipOrder) {
-        this.deleteShipOrder = deleteShipOrder;
-    }
-
-    public JButton getRefreshShipOrder() {
-        return refreshShipOrder;
-    }
-
-    public void setRefreshShipOrder(JButton refreshShipOrder) {
-        this.refreshShipOrder = refreshShipOrder;
-    }
-
-    public JButton getAddShipper() {
-        return addShipper;
-    }
-
-    public void setAddShipper(JButton addShipper) {
-        this.addShipper = addShipper;
-    }
-
-    public JButton getDeleteShipper() {
-        return deleteShipper;
-    }
-
-    public void setDeleteShipper(JButton deleteShipper) {
-        this.deleteShipper = deleteShipper;
-    }
-
-    public JButton getRefreshShipper() {
-        return refreshShipper;
-    }
-
-    public void setRefreshShipper(JButton refreshShipper) {
-        this.refreshShipper = refreshShipper;
-    }
-
-    public JButton getAddNomenclature() {
-        return addNomenclature;
-    }
-
-    public void setAddNomenclature(JButton addNomenclature) {
-        this.addNomenclature = addNomenclature;
-    }
-
-    public JButton getDeleteNomenclature() {
-        return deleteNomenclature;
-    }
-
-    public void setDeleteNomenclature(JButton deleteNomenclature) {
-        this.deleteNomenclature = deleteNomenclature;
-    }
-
-    public JButton getRefreshNomenclature() {
-        return refreshNomenclature;
-    }
-
-    public void setRefreshNomenclature(JButton refreshNomenclature) {
-        this.refreshNomenclature = refreshNomenclature;
-    }
-
-    public JButton getAddStorage() {
-        return addStorage;
-    }
-
-    public void setAddStorage(JButton addStorage) {
-        this.addStorage = addStorage;
-    }
-
-    public JButton getDeleteStorage() {
-        return deleteStorage;
-    }
-
-    public void setDeleteStorage(JButton deleteStorage) {
-        this.deleteStorage = deleteStorage;
-    }
-
-    public JButton getRefreshStorage() {
-        return refreshStorage;
-    }
-
-    public void setRefreshStorage(JButton refreshStorage) {
-        this.refreshStorage = refreshStorage;
-    }
-
-    public JButton getAddItemsInStorage() {
-        return addItemsInStorage;
-    }
-
-    public void setAddItemsInStorage(JButton addItemsInStorage) {
-        this.addItemsInStorage = addItemsInStorage;
-    }
-
-    public JButton getDeleteItemsInStorage() {
-        return deleteItemsInStorage;
-    }
-
-    public void setDeleteItemsInStorage(JButton deleteItemsInStorage) {
-        this.deleteItemsInStorage = deleteItemsInStorage;
-    }
-
-    public JButton getRefreshItemsInStorage() {
-        return refreshItemsInStorage;
-    }
-
-    public void setRefreshItemsInStorage(JButton refreshItemsInStorage) {
-        this.refreshItemsInStorage = refreshItemsInStorage;
-    }
-
-    public JButton getAddDeals() {
-        return addDeals;
-    }
-
-    public void setAddDeals(JButton addDeals) {
-        this.addDeals = addDeals;
-    }
-
-    public JButton getDeleteDeals() {
-        return deleteDeals;
-    }
-
-    public void setDeleteDeals(JButton deleteDeals) {
-        this.deleteDeals = deleteDeals;
-    }
-
-    public JButton getRefreshDeals() {
-        return refreshDeals;
-    }
-
-    public void setRefreshDeals(JButton refreshDeals) {
-        this.refreshDeals = refreshDeals;
     }
 
     /**

@@ -18,8 +18,9 @@ public class AddClient extends JFrame {
     private JTextField birthDate;
     private JButton addClient;
     private Controller controller;
+    private Client client;
 
-    public AddClient(final Controller controller) {
+    public AddClient(final Controller controller, JTable table) {
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (ClassNotFoundException e) {
@@ -44,6 +45,44 @@ public class AddClient extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 Client client = new Client();
 //              client.setId(Integer.valueOf(id.getText()));
+                client.setName(name.getText());
+                client.setNumber(phoneNumber.getText());
+                client.setBirthDate(Date.valueOf(birthDate.getText()));
+                controller.getHibernate().add(client);
+
+            }
+        });
+        controller.updateClientTable(controller.getHibernate().get("Client"), table);
+    }
+
+    public AddClient(final Controller controller, Client client1) {
+        try {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+        this.controller = controller;
+        $$$setupUI$$$();
+        setContentPane(panel1);
+        pack();
+        setVisible(true);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setResizable(false);
+        setLocationRelativeTo(null);
+        setTitle("Добавить клиента");
+//        id.setText(Integer.toString(client.getId()));
+        this.client = client1;
+        name.setText(client.getName());
+        phoneNumber.setText(client.getNumber());
+        birthDate.setText(client.getBirthDate().toString());
+        addClient.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
                 client.setName(name.getText());
                 client.setNumber(phoneNumber.getText());
                 client.setBirthDate(Date.valueOf(birthDate.getText()));

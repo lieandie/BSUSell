@@ -18,7 +18,7 @@ public class AddStorage extends JFrame {
     private JButton add;
     private JTextField textField1;
 
-    public AddStorage(final Controller controller) {
+    public AddStorage(final Controller controller, JTable table) {
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (ClassNotFoundException e) {
@@ -55,7 +55,46 @@ public class AddStorage extends JFrame {
                 controller.getHibernate().add(o);
             }
         });
+        controller.updateStorageTable(controller.getHibernate().get("Storage"), table);
+    }
 
+    public AddStorage(final Controller controller, Storage storage) {
+        try {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+        this.controller = controller;
+
+        $$$setupUI$$$();
+
+        setContentPane(panel1);
+
+        pack();
+
+        setVisible(true);
+
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+
+        setResizable(false);
+
+        setLocationRelativeTo(null);
+        textField1.setText(storage.getName());
+        desc.setText(storage.getDescription());
+        setTitle("Добавить склад");
+        add.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                storage.setName(textField1.getText());
+                storage.setDescription(desc.getText());
+                controller.getHibernate().add(storage);
+            }
+        });
     }
 
     /**

@@ -21,7 +21,7 @@ public class AddNomenclature extends JFrame {
     private JButton save;
     private Controller controller;
 
-    public AddNomenclature(final Controller controller) {
+    public AddNomenclature(final Controller controller, JTable table) {
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (ClassNotFoundException e) {
@@ -52,6 +52,47 @@ public class AddNomenclature extends JFrame {
                 o.setWholesalePrice(Double.valueOf(textField2.getText()));
                 o.setRetailPrice(Double.valueOf(textField3.getText()));
                 controller.getHibernate().add(o);
+            }
+        });
+        controller.updateNomenclatureTable(controller.getHibernate().get("Nomenclature"), table);
+    }
+
+    public AddNomenclature(final Controller controller, Nomenclature nomenclature) {
+        try {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+        $$$setupUI$$$();
+        setContentPane(panel1);
+        pack();
+        setVisible(true);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setResizable(false);
+        setLocationRelativeTo(null);
+        name.setText(nomenclature.getName());
+        article.setText(nomenclature.getArticle());
+        description.setText(nomenclature.getDescritrion());
+        textField1.setText(Double.toString(nomenclature.getBasePrice()));
+        textField2.setText(Double.toString(nomenclature.getWholesalePrice()));
+        textField3.setText(Double.toString(nomenclature.getRetailPrice()));
+        setTitle("Добавить номенклатуру");
+        this.controller = controller;
+        save.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                nomenclature.setName(name.getText());
+                nomenclature.setArticle(article.getText());
+                nomenclature.setDescritrion(description.getText());
+                nomenclature.setBasePrice(Double.valueOf(textField1.getText()));
+                nomenclature.setWholesalePrice(Double.valueOf(textField2.getText()));
+                nomenclature.setRetailPrice(Double.valueOf(textField3.getText()));
+                controller.getHibernate().add(nomenclature);
             }
         });
     }

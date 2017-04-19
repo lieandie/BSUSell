@@ -12,11 +12,15 @@ public class Controller {
     private AppForm frame;
     private HibernateHolder hibernate;
 
-    public void initModel(){
+    public void initModel() {
         hibernate = new HibernateHolder();
     }
 
-    public void initView(){
+    public void initModel(String url,String dbUrl, String user, String psswd) {
+        hibernate = new HibernateHolder(url,dbUrl,user,psswd);
+    }
+
+    public void initView() {
         frame = new AppForm(this);
     }
 
@@ -50,7 +54,7 @@ public class Controller {
             Vector<Object> oneRow = new Vector<Object>();
             oneRow.add(order.getId());
             int clientId = order.getClientId();
-            ArrayList<Client> clients = hibernate.get("Client where id="+clientId);
+            ArrayList<Client> clients = hibernate.get("Client where id=" + clientId);
             oneRow.add(clients.get(0).getName());
             oneRow.add(order.getSum());
             tableData.add(oneRow);
@@ -93,6 +97,29 @@ public class Controller {
             oneRow.add(storage.getId());
             oneRow.add(storage.getName());
             oneRow.add(storage.getDescription());
+            tableData.add(oneRow);
+        }
+        table.setModel(new CustomTableModel(tableData, tableHeaders));
+    }
+
+    public void updateShipOrderTable(ArrayList data, JTable table) {
+        Vector<String> tableHeaders = new Vector<String>();
+        final Vector tableData = new Vector();
+        tableHeaders.add("Номер");
+        tableHeaders.add("Сумма");
+        tableHeaders.add("Поставщик");
+        tableHeaders.add("Склад");
+        for (Object o : data) {
+            ShipOrder o1 = (ShipOrder) o;
+            Vector<Object> oneRow = new Vector<Object>();
+            oneRow.add(o1.getId());
+            oneRow.add(o1.getSum());
+            ArrayList shipper = hibernate.get("Shipper where id=" + o1.getShipper_id());
+            Shipper shipper1 = (Shipper) shipper.get(0);
+            oneRow.add(shipper1.getName());
+            ArrayList storages = hibernate.get("Storage where id=" + o1.getStorage_id());
+            Storage storage = (Storage) storages.get(0);
+            oneRow.add(storage.getName());
             tableData.add(oneRow);
         }
         table.setModel(new CustomTableModel(tableData, tableHeaders));
@@ -145,10 +172,10 @@ public class Controller {
             Item o1 = (Item) o;
             Vector<Object> oneRow = new Vector<Object>();
             oneRow.add(o1.getId());
-            ArrayList nom = hibernate.get("Nomenclature where id="+o1.getNomenclatureId());
-            Nomenclature nomenclature = (Nomenclature)nom.get(0);
+            ArrayList nom = hibernate.get("Nomenclature where id=" + o1.getNomenclatureId());
+            Nomenclature nomenclature = (Nomenclature) nom.get(0);
             oneRow.add(nomenclature.getName());
-            ArrayList stor = hibernate.get("Storage where id="+o1.getStorageId());
+            ArrayList stor = hibernate.get("Storage where id=" + o1.getStorageId());
             Storage storage = (Storage) stor.get(0);
             oneRow.add(storage.getName());
             oneRow.add(o1.getQuanity());

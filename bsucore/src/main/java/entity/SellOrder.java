@@ -71,4 +71,5 @@ public class SellOrder {
         result = 31 * result + (sum != null ? sum.hashCode() : 0);
         return result;
     }
+
 }

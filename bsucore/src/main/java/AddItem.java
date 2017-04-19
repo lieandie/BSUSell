@@ -23,7 +23,7 @@ public class AddItem extends JFrame {
     private ArrayList nomenclatureList;
 
 
-    public AddItem(final Controller controller) {
+    public AddItem(final Controller controller, JTable table) {
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (ClassNotFoundException e) {
@@ -55,6 +55,43 @@ public class AddItem extends JFrame {
                 o.setStorageId(storage.getId());
                 o.setQuanity(Integer.valueOf(adress.getText()));
                 controller.getHibernate().add(o);
+            }
+        });
+        controller.updateItemTable(controller.getHibernate().get("Item"), table);
+    }
+
+    public AddItem(final Controller controller, Item item) {
+        try {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+        this.controller = controller;
+        $$$setupUI$$$();
+        initComboBox();
+        setContentPane(panel1);
+        pack();
+        setVisible(true);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setResizable(false);
+        setLocationRelativeTo(null);
+        adress.setText(Integer.toString(item.getQuanity()));
+        setTitle("Добавить товары на склад");
+        this.controller = controller;
+        add.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Nomenclature nomenclature = (Nomenclature) nomenclatureList.get(comboBox1.getSelectedIndex());
+                Storage storage = (Storage) storageList.get(comboBox2.getSelectedIndex());
+                item.setNomenclatureId(nomenclature.getId());
+                item.setStorageId(storage.getId());
+                item.setQuanity(Integer.valueOf(adress.getText()));
+                controller.getHibernate().add(item);
             }
         });
     }

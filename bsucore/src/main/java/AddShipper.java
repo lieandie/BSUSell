@@ -17,7 +17,7 @@ public class AddShipper extends JFrame {
     private JButton add;
     private JTextField textField1;
 
-    public AddShipper(final Controller controller) {
+    public AddShipper(final Controller controller, JTable table) {
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (ClassNotFoundException e) {
@@ -45,6 +45,41 @@ public class AddShipper extends JFrame {
                 o.setNumber(phoneNumber.getText());
                 o.setAdress(adress.getText());
                 controller.getHibernate().add(o);
+            }
+        });
+        controller.updateShipperTable(controller.getHibernate().get("Shipper"), table);
+    }
+
+    public AddShipper(final Controller controller, Shipper shipper) {
+        try {
+            UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+        this.controller = controller;
+        $$$setupUI$$$();
+        setContentPane(panel1);
+        pack();
+        setVisible(true);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setResizable(false);
+        setLocationRelativeTo(null);
+        textField1.setText(shipper.getName());
+        adress.setText(shipper.getAdress());
+        phoneNumber.setText(shipper.getNumber());
+        setTitle("Добавить поставщика");
+        add.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                shipper.setName(textField1.getText());
+                shipper.setNumber(phoneNumber.getText());
+                shipper.setAdress(adress.getText());
+                controller.getHibernate().add(shipper);
             }
         });
     }

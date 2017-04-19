@@ -11,11 +11,12 @@ import java.util.List;
 import java.util.Vector;
 
 /**
- * Created by Кирилл on 14.04.2017.
+ * Created by Кирилл on 19.04.2017.
  */
-public class AddSellOrder extends JFrame {
+public class AddShipOrder extends JFrame {
     private JPanel panel1;
-    private JComboBox clients;
+    private JComboBox comboBox1;
+    private JComboBox comboBox2;
     private JTable itemsTable;
     private JTextField sum;
     private JButton subm;
@@ -23,10 +24,11 @@ public class AddSellOrder extends JFrame {
     private JButton deleteButton;
     private JButton refreshTableButton;
     private Controller controller;
-    private List itemsList;
-    private List clientQuery;
+    private ArrayList items = new ArrayList();
+    private ArrayList queryShippers;
+    private ArrayList queryStorages;
 
-    public AddSellOrder(Controller controller) {
+    public AddShipOrder(Controller controller) {
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (ClassNotFoundException e) {
@@ -38,74 +40,62 @@ public class AddSellOrder extends JFrame {
         } catch (UnsupportedLookAndFeelException e) {
             e.printStackTrace();
         }
-        this.controller = controller;
-
         $$$setupUI$$$();
-
-        initComboBox();
-
-        itemsList = new ArrayList();
-
+        this.controller = controller;
         setContentPane(panel1);
-
-        updateItemTable();
-
+        pack();
+        setVisible(true);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setResizable(false);
+        setLocationRelativeTo(null);
+        setTitle("Добавить заказ поставщику");
+        initCombos();
         refreshTableButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 updateItemTable();
             }
         });
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                AddItemToDeal addItemToDeal = new AddItemToDeal(controller, itemsList);
-            }
-        });
         deleteButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                itemsList.remove(itemsTable.getSelectedRow());
+                items.remove(itemsTable.getSelectedRow());
                 updateItemTable();
+            }
+        });
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int idxStorage = comboBox2.getSelectedIndex();
+                AddItemToShip addItemToShip = new AddItemToShip(controller, items, idxStorage);
             }
         });
         subm.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                SellOrder sellOrder = new SellOrder();
-                Client tmp = (Client) clientQuery.get(Integer.valueOf(clients.getSelectedIndex()));
-                sellOrder.setClientId(tmp.getId());
-                sellOrder.setSum(Double.parseDouble(sum.getText()));
-                int sellId = add(sellOrder);
-                for (Object o : itemsList) {
+                ShipOrder shipOrder = new ShipOrder();
+                Shipper tmp = (Shipper) queryShippers.get(Integer.valueOf(comboBox1.getSelectedIndex()));
+                shipOrder.setShipper_id(tmp.getId());
+                Storage storage = (Storage) queryStorages.get(Integer.valueOf(comboBox2.getSelectedIndex()));
+                shipOrder.setStorage_id(storage.getId());
+                shipOrder.setSum(Double.parseDouble(sum.getText()));
+                int sellId = add(shipOrder);
+                for (Object o : items) {
                     Item o1 = (Item) o;
                     List<Item> tmpItems = controller.getHibernate().get("Item where id=" + o1.getId());
                     Item up = tmpItems.get(0);
-                    up.setQuanity(up.getQuanity() - o1.getQuanity());
+                    up.setQuanity(up.getQuanity() + o1.getQuanity());
                     controller.getHibernate().add(up);
-                    SellOrderItem oi = new SellOrderItem();
-                    oi.setSellOrdersId(sellId);
+                    ShipOrderItem oi = new ShipOrderItem();
+                    oi.setShipOrdersId(sellId);
                     oi.setItemsId(o1.getId());
-                    oi.setQuanity(o1.getQuanity());
                     controller.getHibernate().add(oi);
                 }
             }
         });
-
-        pack();
-
-        setVisible(true);
-
-        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
-        setResizable(false);
-
-        setLocationRelativeTo(null);
-
-        setTitle("Добавить заказ на продажу");
     }
 
-    public int add(SellOrder sellOrder) {
+    public int add(ShipOrder sellOrder) {
         Session session = controller.getHibernate().getSession();
         session.getTransaction().begin();
         session.save(sellOrder);
@@ -114,38 +104,37 @@ public class AddSellOrder extends JFrame {
         return sellOrder.getId();
     }
 
+    public void initCombos() {
+        queryShippers = controller.getHibernate().get("Shipper");
+        for (Object o : queryShippers) {
+            Shipper o1 = (Shipper) o;
+            comboBox1.addItem(o1.getName());
+        }
+        queryStorages = controller.getHibernate().get("Storage");
+        for (Object o : queryStorages) {
+            Storage o1 = (Storage) o;
+            comboBox2.addItem(o1.getName());
+        }
+    }
+
     public void updateItemTable() {
         Vector<String> tableHeaders = new Vector<String>();
         final Vector tableData = new Vector();
-        tableHeaders.add("Номер");
         tableHeaders.add("Номенклатура");
-        tableHeaders.add("Склад");
         tableHeaders.add("Количество в заказе");
         double sumTmp = 0;
-        for (Object o : itemsList) {
+        for (Object o : items) {
             Item o1 = (Item) o;
             Vector<Object> oneRow = new Vector<Object>();
-            oneRow.add(o1.getId());
             ArrayList nom = controller.getHibernate().get("Nomenclature where id=" + o1.getNomenclatureId());
             Nomenclature nomenclature = (Nomenclature) nom.get(0);
-            sumTmp += nomenclature.getWholesalePrice();
+            sumTmp += nomenclature.getBasePrice();
             oneRow.add(nomenclature.getName());
-            ArrayList stor = controller.getHibernate().get("Storage where id=" + o1.getStorageId());
-            Storage storage = (Storage) stor.get(0);
-            oneRow.add(storage.getName());
             oneRow.add(o1.getQuanity());
             tableData.add(oneRow);
         }
         sum.setText(Double.toString(sumTmp));
         itemsTable.setModel(new CustomTableModel(tableData, tableHeaders));
-    }
-
-    private void initComboBox() {
-        clientQuery = controller.getHibernate().get("Client");
-        for (Object o : clientQuery) {
-            Client o1 = (Client) o;
-            clients.addItem(o1.getName());
-        }
     }
 
     /**
@@ -157,31 +146,36 @@ public class AddSellOrder extends JFrame {
      */
     private void $$$setupUI$$$() {
         panel1 = new JPanel();
-        panel1.setLayout(new FormLayout("fill:d:noGrow,left:4dlu:noGrow,fill:454px:noGrow,left:4dlu:noGrow,fill:8px:noGrow", "center:max(d;4px):noGrow,top:4dlu:noGrow,center:d:noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:102dlu:noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow"));
+        panel1.setLayout(new FormLayout("fill:max(d;4px):noGrow,left:4dlu:noGrow,fill:d:noGrow,left:4dlu:noGrow,fill:372px:noGrow", "center:d:noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow,top:148dlu:noGrow,center:max(d;4px):noGrow,center:max(d;4px):noGrow,top:4dlu:noGrow,center:max(d;4px):noGrow"));
         final JLabel label1 = new JLabel();
-        label1.setText("Клиент");
+        label1.setText("Поставщик");
         CellConstraints cc = new CellConstraints();
-        panel1.add(label1, cc.xy(1, 3));
-        clients = new JComboBox();
-        panel1.add(clients, cc.xy(3, 3));
+        panel1.add(label1, cc.xy(3, 1));
+        comboBox1 = new JComboBox();
+        panel1.add(comboBox1, cc.xy(5, 1));
         final JLabel label2 = new JLabel();
-        label2.setText("Товары");
-        panel1.add(label2, cc.xy(1, 5));
+        label2.setText("Склад");
+        panel1.add(label2, cc.xy(3, 3));
+        comboBox2 = new JComboBox();
+        panel1.add(comboBox2, cc.xy(5, 3));
+        final JLabel label3 = new JLabel();
+        label3.setText("Товары");
+        panel1.add(label3, cc.xy(3, 5));
         final JScrollPane scrollPane1 = new JScrollPane();
-        panel1.add(scrollPane1, cc.xy(3, 6, CellConstraints.FILL, CellConstraints.FILL));
+        panel1.add(scrollPane1, cc.xy(5, 6, CellConstraints.FILL, CellConstraints.FILL));
         itemsTable = new JTable();
         scrollPane1.setViewportView(itemsTable);
-        final JLabel label3 = new JLabel();
-        label3.setText("Сумма");
-        panel1.add(label3, cc.xy(1, 9));
+        final JLabel label4 = new JLabel();
+        label4.setText("Сумма");
+        panel1.add(label4, cc.xy(3, 8));
         sum = new JTextField();
-        panel1.add(sum, cc.xy(3, 9, CellConstraints.FILL, CellConstraints.DEFAULT));
+        panel1.add(sum, cc.xy(5, 8, CellConstraints.FILL, CellConstraints.DEFAULT));
         subm = new JButton();
         subm.setText("Записать");
-        panel1.add(subm, cc.xy(3, 11));
+        panel1.add(subm, cc.xy(5, 10));
         final JToolBar toolBar1 = new JToolBar();
         toolBar1.setFloatable(false);
-        panel1.add(toolBar1, cc.xy(3, 5, CellConstraints.FILL, CellConstraints.DEFAULT));
+        panel1.add(toolBar1, cc.xy(5, 5, CellConstraints.FILL, CellConstraints.DEFAULT));
         addButton = new JButton();
         addButton.setBorderPainted(false);
         addButton.setIcon(new ImageIcon(getClass().getResource("/add.png")));

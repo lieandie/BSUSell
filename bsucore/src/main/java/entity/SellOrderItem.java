@@ -11,6 +11,7 @@ import javax.persistence.*;
 public class SellOrderItem {
     private int itemsId;
     private int sellOrdersId;
+    private int quanity;
 
     @Id
     @Column(name = "items_id")
@@ -30,6 +31,16 @@ public class SellOrderItem {
 
     public void setSellOrdersId(int sellOrdersId) {
         this.sellOrdersId = sellOrdersId;
+    }
+
+    @Basic
+    @Column(name = "quanity")
+    public int getQuanity() {
+        return quanity;
+    }
+
+    public void setQuanity(int quanity) {
+        this.quanity = quanity;
     }
 
     @Override

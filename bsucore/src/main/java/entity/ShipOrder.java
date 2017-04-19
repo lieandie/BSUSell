@@ -28,17 +28,10 @@ public class ShipOrder {
         this.id = id;
     }
 
-    /*@OneToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-            name = "ship_order_item",
-            joinColumns = @JoinColumn(name = "ship_orders_id"),
-            inverseJoinColumns = @JoinColumn(name = "items_id")
-    )*/
-
 
     @Basic
     @Column(name = "sum")
-    public Double getSum()   {
+    public Double getSum() {
         return sum;
     }
 
@@ -47,7 +40,7 @@ public class ShipOrder {
     }
 
     @Basic
-    @Column(name="shippers_id", nullable = false)
+    @Column(name = "shippers_id", nullable = false)
     public int getShipper_id() {
         return shipper_id;
     }
@@ -55,6 +48,7 @@ public class ShipOrder {
     public void setShipper_id(int shipper_id) {
         this.shipper_id = shipper_id;
     }
+
     @Basic
     @Column(name = "storages_id", nullable = false)
     public int getStorage_id() {
